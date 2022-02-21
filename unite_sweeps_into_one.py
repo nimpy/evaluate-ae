@@ -41,7 +41,7 @@ def sweep_one_sweep_to_rule_them_all():
 
     args = parser.parse_args()
 
-    use_wandb = False
+    use_wandb = True
 
     if use_wandb:
         wandb_run = wandb.init()
