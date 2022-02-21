@@ -2,6 +2,10 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import mean_squared_error as mse
 
+import sys
+sys.path.append('/scratch/cloned_repositories/pytorch-msssim')
+from pytorch_msssim import msssim
+
 import torch
 from torch.autograd import Variable
 
@@ -22,9 +26,12 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     test_dl = dataloaders['test']
 
     counter = 0
+    counter_msssim = 0
     diff_mse_cum = 0
     diff_ssim_cum = 0
     diff_psnr_cum = 0
+    diff_msssim_cum1 = 0
+    diff_msssim_cum2 = 0
 
     model.eval()
 
@@ -37,6 +44,17 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             output_batch, _, _ = model(data_batch)
         else:
             output_batch = model(data_batch)
+
+        diff_msssim1 = - msssim(data_batch, output_batch)  # minus because I already inverted it... # TODO fix
+        diff_msssim_cum1 += diff_msssim1
+        # print(diff_msssim_cum)
+        counter_msssim += 1
+        print(data_batch.shape)
+
+        for input_image, output_image in zip(data_batch, output_batch):
+            diff_msssim2 = - msssim(torch.unsqueeze(input_image, 0), torch.unsqueeze(output_image, 0))
+            diff_msssim_cum2 += diff_msssim2
+
 
         data_batch = data_batch.cpu().numpy()
         output_batch = output_batch.detach().cpu().numpy()
@@ -56,8 +74,15 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
             diff_psnr_cum += diff_psnr
 
+            # diff_msssim = - msssim(data_batch[i], output_batch[i])  # minus because I already inverted it... # TODO fix
+            # diff_msssim_cum += diff_msssim
+
     diff_mse_average = diff_mse_cum / counter
     diff_ssim_average = diff_ssim_cum / counter
     diff_psnr_average = diff_psnr_cum / counter
+    diff_msssim_average1 = diff_msssim_cum1 / counter_msssim
+    diff_msssim_average2 = diff_msssim_cum2 / counter
+    # these should be the same but they are not exactly the same because the last batch has 20 images instead of 32
+    print(diff_msssim_average1, '=================', diff_msssim_average2)
 
-    return diff_mse_average, diff_ssim_average, diff_psnr_average
+    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average1

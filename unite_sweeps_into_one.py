@@ -52,6 +52,13 @@ def sweep_one_sweep_to_rule_them_all():
     if use_wandb:
         wandb_run = wandb.init()
 
+    # TODO delete when done with debugging
+    wandb.config.data_augm_level = 0
+    wandb.config.activation_fn = 'elu'
+    wandb.config.loss_fn = 'bce'
+    wandb.config.vae_beta_norm = 0.0001
+    wandb.config.learning_rate = 0.0001
+
     logging.info("\n\n****************** STARTING A NEW RUN ******************")
     logging.info('Data augmentation level: ' + str(wandb.config.data_augm_level))
     logging.info('Activation function    : ' + str(wandb.config.activation_fn))
@@ -90,9 +97,9 @@ def sweep_one_sweep_to_rule_them_all():
     model.eval()
     # if torch.cuda.is_available():  # uncomment for CUDA
     #     model.cuda()
-    print(model)
 
-    _, _, _ = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
+    mse, ssim, psnr, msssim = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
+    print('==== metrics:', mse, ssim, psnr, msssim)
 
     if use_wandb:
         wandb.log({"num_epochs": row_df.num_epochs, "variational": row_df.variational,
