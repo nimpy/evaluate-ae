@@ -1,6 +1,14 @@
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import mean_squared_error as mse
+from skimage.metrics import adapted_rand_error as are
+from skimage.metrics import contingency_table as ct
+from skimage.metrics import normalized_root_mse as nrmse
+from skimage.metrics import variation_of_information as voi
+# the following not part of skimage v0.17.2
+# from skimage.metrics import hausdorff_distance as hd
+# from skimage.metrics import hausdorff_pair as hp
+# from skimage.metrics import normalized_mutual_information as nmi
 
 import sys
 sys.path.append('/scratch/cloned_repositories/pytorch-msssim')
@@ -30,6 +38,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_ssim_cum = 0
     diff_psnr_cum = 0
     diff_msssim_cum = 0
+    diff_are_cum = 0
+    diff_ct_cum = 0
+    diff_nrmse_cum = 0
+    diff_voi_cum = 0
 
     model.eval()
 
@@ -69,9 +81,27 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
             diff_psnr_cum += diff_psnr
 
+            # diff_are, _, _ = are(data_batch[i], output_batch[i])  # TODO log these too!
+            diff_are_cum += 1#diff_are
+
+            # diff_ct = ct(data_batch[i], output_batch[i])
+            diff_ct_cum += 1#diff_ct
+
+            diff_nrmse = nrmse(data_batch[i], output_batch[i])  # TODO, log for diff normalisations (euclidean’, ‘min-max’, ‘mean')
+            diff_nrmse_cum += diff_nrmse
+
+            # diff_voi = voi(data_batch[i], output_batch[i])
+            diff_voi_cum += 1#diff_voi
+
     diff_mse_average = diff_mse_cum / counter
     diff_ssim_average = diff_ssim_cum / counter
     diff_psnr_average = diff_psnr_cum / counter
     diff_msssim_average = diff_msssim_cum.detach().cpu().numpy() / counter
 
-    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average
+    diff_are_average = diff_are_cum / counter
+    diff_ct_average = diff_ct_cum / counter
+    diff_nrmse_average = diff_nrmse_cum / counter
+    diff_voi_average = diff_voi_cum / counter
+
+
+    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, diff_ct_average, diff_nrmse_average, diff_voi_average
