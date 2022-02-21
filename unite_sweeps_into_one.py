@@ -6,11 +6,17 @@ import os
 from pathlib import Path
 import pandas as pd
 import wandb
+import torch
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--weights_dir', default='/scratch/image_datasets/3_65x65/ready/weights',
-                    help="Directory where weights will be saved")
+parser.add_argument('--sweep_dir', default='/scratch/image_datasets/3_65x65/ready/weights',
+                    help="Directory where the sweep runs are saved")
+parser.add_argument('--saved_weights_dir', default='/home/niaki/Projects/local-img-descr-ae/weights_bak/sweep_all3',
+                    help="Directory where the previously trained models are saved")
 
+import evaluation
+import models.ae as ae
+import models.vae as vae
 
 def load_sweep_csv(filepath):
 
@@ -26,7 +32,7 @@ def load_sweep_csv(filepath):
     return df
 
 
-sweep_df = load_sweep_csv('sweep_results.csv')
+sweep_df = load_sweep_csv('sweep_results_times_dirs.csv')
 
 
 def find_row_with_inputs(activation_fn, data_augm_level, loss_fn, vae_beta_norm):
@@ -41,10 +47,19 @@ def sweep_one_sweep_to_rule_them_all():
 
     args = parser.parse_args()
 
-    use_wandb = True
+    use_wandb = False
 
     if use_wandb:
         wandb_run = wandb.init()
+
+    # TODO delete
+    wandb.config.data_augm_level = 0
+    wandb.config.activation_fn = 'elu'
+    wandb.config.loss_fn = 'bce'
+    wandb.config.vae_beta_norm = 0.0001
+    wandb.config.learning_rate = 0.0001
+
+
 
     logging.info("\n\n****************** STARTING A NEW RUN ******************")
     logging.info('Data augmentation level: ' + str(wandb.config.data_augm_level))
@@ -68,10 +83,26 @@ def sweep_one_sweep_to_rule_them_all():
 
     sweep_version = 'sweep__one_sweep_to_rule_them_all_v2022_0'  # TODO change in both files!!! (TODO make it a parameter)
 
-    Path(os.path.join(args.weights_dir, sweep_version)).mkdir(parents=True, exist_ok=True)
+    Path(os.path.join(args.sweep_dir, sweep_version)).mkdir(parents=True, exist_ok=True)
 
     # find and read the entry from the data frame
     row_df = find_row_with_inputs(wandb.config.activation_fn, wandb.config.data_augm_level, wandb.config.loss_fn, wandb.config.vae_beta_norm)
+
+    # load the corresponding model
+    model_dir_name = row_df.dir_name
+    model_path = os.path.join(args.saved_weights_dir, model_dir_name, 'best.pth.tar')
+    if model_dir_name.endswith('_vae'):
+        model = vae.BetaVAE(32)
+    else:
+        model = ae.AE(32)
+    model.load_state_dict(torch.load(model_path)['state_dict'])
+    model.eval()
+    # if torch.cuda.is_available():
+    #     model.cuda()
+    print('MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL ', model)
+
+    mse, _, _ = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
+    print('MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE ', mse)
 
     if use_wandb:
         wandb.log({"num_epochs": row_df.num_epochs, "variational": row_df.variational,
@@ -83,3 +114,7 @@ def sweep_one_sweep_to_rule_them_all():
 
     if use_wandb:
         wandb_run.finish()
+        
+        
+if __name__ == '__main__':
+    sweep_one_sweep_to_rule_them_all()

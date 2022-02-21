@@ -14,7 +14,7 @@ import data_loader
 def calculate_approximate_evaluation_metrics_on_test_set(model):
 
     params = utilities.Params('models/params.json')
-    params.cuda = torch.cuda.is_available()
+    params.cuda = False  # torch.cuda.is_available()
 
     variational = isinstance(model, vae.BetaVAE)
 
@@ -30,7 +30,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
 
     for data_batch in test_dl:
 
-        data_batch = data_batch.cuda(non_blocking=True)
+        # data_batch = data_batch.cuda(non_blocking=True)
         data_batch = Variable(data_batch)
 
         if variational:
