@@ -52,15 +52,6 @@ def sweep_one_sweep_to_rule_them_all():
     if use_wandb:
         wandb_run = wandb.init()
 
-    # TODO delete
-    wandb.config.data_augm_level = 0
-    wandb.config.activation_fn = 'elu'
-    wandb.config.loss_fn = 'bce'
-    wandb.config.vae_beta_norm = 0.0001
-    wandb.config.learning_rate = 0.0001
-
-
-
     logging.info("\n\n****************** STARTING A NEW RUN ******************")
     logging.info('Data augmentation level: ' + str(wandb.config.data_augm_level))
     logging.info('Activation function    : ' + str(wandb.config.activation_fn))
@@ -97,12 +88,11 @@ def sweep_one_sweep_to_rule_them_all():
         model = ae.AE(32)
     model.load_state_dict(torch.load(model_path)['state_dict'])
     model.eval()
-    # if torch.cuda.is_available():
+    # if torch.cuda.is_available():  # uncomment for CUDA
     #     model.cuda()
-    print('MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL MODEL ', model)
+    print(model)
 
-    mse, _, _ = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
-    print('MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE MSE ', mse)
+    _, _, _ = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
 
     if use_wandb:
         wandb.log({"num_epochs": row_df.num_epochs, "variational": row_df.variational,
@@ -118,3 +108,11 @@ def sweep_one_sweep_to_rule_them_all():
         
 if __name__ == '__main__':
     sweep_one_sweep_to_rule_them_all()
+    # if it's run like this (only for testing, then the following should be added right before the following line:
+    # #    logging.info("\n\n****************** STARTING A NEW RUN ******************")
+
+    # wandb.config.data_augm_level = 0
+    # wandb.config.activation_fn = 'elu'
+    # wandb.config.loss_fn = 'bce'
+    # wandb.config.vae_beta_norm = 0.0001
+    # wandb.config.learning_rate = 0.0001
