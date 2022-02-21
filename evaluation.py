@@ -16,7 +16,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     params = utilities.Params('models/params.json')
     params.cuda = torch.cuda.is_available()
 
-    variational = isinstance(model, vae.BetaVAE)  # or isinstance(model, vae_ir.BetaVAE)
+    variational = isinstance(model, vae.BetaVAE)
 
     dataloaders = data_loader.fetch_dataloader(['test'], '/scratch/image_datasets/3_65x65/ready', params, batch_size=32)
     test_dl = dataloaders['test']

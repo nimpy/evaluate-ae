@@ -17,9 +17,8 @@ class PatchesDataset(Dataset):
             transform: (torchvision.transforms) transformation to apply on image
         """
         self.filenames = os.listdir(data_dir)
-        self.filenames = [os.path.join(data_dir, f) for f in self.filenames]# if f.endswith('.jpg')]
+        self.filenames = [os.path.join(data_dir, f) for f in self.filenames]
 
-        # self.labels = [int(os.path.split(filename)[-1][0]) for filename in self.filenames]
         self.transform = transform
 
     def __len__(self):
@@ -28,16 +27,15 @@ class PatchesDataset(Dataset):
 
     def __getitem__(self, idx):
         """
-        Fetch index idx image and labels from dataset. Perform transforms on image.
+        Fetch index idx image from dataset. Perform transforms on image.
         Args:
             idx: (int) index in [0, 1, ..., size_of_dataset-1]
         Returns:
             image: (Tensor) transformed image
-            label: (int) corresponding label of image
         """
         image = Image.open(self.filenames[idx])  # PIL image
         image = self.transform(image)
-        return image#, self.labels[idx]
+        return image
 
 
 def fetch_dataloader(types, data_dir, params, batch_size, rotation_deg=0, translation=0, scaling=1, shearing_deg=0):

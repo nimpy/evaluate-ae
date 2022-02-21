@@ -71,7 +71,6 @@ class AE(nn.Module):
 
     def forward(self, x):
         x = self.encode(x)
-        # pdb.set_trace()
         x = self.decode(x)
         return x
 
