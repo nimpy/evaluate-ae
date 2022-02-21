@@ -26,12 +26,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     test_dl = dataloaders['test']
 
     counter = 0
-    counter_msssim = 0
     diff_mse_cum = 0
     diff_ssim_cum = 0
     diff_psnr_cum = 0
-    diff_msssim_cum1 = 0
-    diff_msssim_cum2 = 0
+    diff_msssim_cum = 0
 
     model.eval()
 
@@ -45,17 +43,14 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
         else:
             output_batch = model(data_batch)
 
-        diff_msssim1 = - msssim(data_batch, output_batch)  # minus because I already inverted it... # TODO fix
-        diff_msssim_cum1 += diff_msssim1
-        # print(diff_msssim_cum)
-        counter_msssim += 1
-        print(data_batch.shape)
-
+        # calculating MS-SSIM before converting the input and output batches to numpy format...
         for input_image, output_image in zip(data_batch, output_batch):
-            diff_msssim2 = - msssim(torch.unsqueeze(input_image, 0), torch.unsqueeze(output_image, 0))
-            diff_msssim_cum2 += diff_msssim2
+            # reshape the images to add extra dimension because this is the expected input of pytorch_msssim
+            # minus because I already negated msssim in its code  # TODO fix (install the library and import like that)
+            diff_msssim = - msssim(torch.unsqueeze(input_image, 0), torch.unsqueeze(output_image, 0))
+            diff_msssim_cum += diff_msssim
 
-
+        # now convert the input and output batches to numpy
         data_batch = data_batch.cpu().numpy()
         output_batch = output_batch.detach().cpu().numpy()
 
@@ -74,15 +69,9 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
             diff_psnr_cum += diff_psnr
 
-            # diff_msssim = - msssim(data_batch[i], output_batch[i])  # minus because I already inverted it... # TODO fix
-            # diff_msssim_cum += diff_msssim
-
     diff_mse_average = diff_mse_cum / counter
     diff_ssim_average = diff_ssim_cum / counter
     diff_psnr_average = diff_psnr_cum / counter
-    diff_msssim_average1 = diff_msssim_cum1 / counter_msssim
-    diff_msssim_average2 = diff_msssim_cum2 / counter
-    # these should be the same but they are not exactly the same because the last batch has 20 images instead of 32
-    print(diff_msssim_average1, '=================', diff_msssim_average2)
+    diff_msssim_average = diff_msssim_cum.detach().cpu().numpy() / counter
 
-    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average1
+    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average
