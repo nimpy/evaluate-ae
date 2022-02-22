@@ -40,7 +40,9 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_msssim_cum = 0
     diff_are_cum = 0
     diff_ct_cum = 0
-    diff_nrmse_cum = 0
+    diff_nrmse_eucl_cum = 0
+    diff_nrmse_minmax_cum = 0
+    diff_nrmse_mean_cum = 0
     diff_voi_cum = 0
 
     model.eval()
@@ -87,8 +89,15 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             # diff_ct = ct(data_batch[i], output_batch[i])
             diff_ct_cum += 1#diff_ct
 
-            diff_nrmse = nrmse(data_batch[i], output_batch[i])  # TODO, log for diff normalisations (euclidean’, ‘min-max’, ‘mean')
-            diff_nrmse_cum += diff_nrmse
+            # for NRMSE, logging for different normalisations ('euclidean’, ‘min-max’, ‘mean')
+            diff_nrmse_eucl = nrmse(data_batch[i], output_batch[i], normalization='euclidean')
+            diff_nrmse_eucl_cum += diff_nrmse_eucl
+
+            diff_nrmse_minmax = nrmse(data_batch[i], output_batch[i], normalization='min-max')
+            diff_nrmse_minmax_cum += diff_nrmse_minmax
+
+            diff_nrmse_mean = nrmse(data_batch[i], output_batch[i], normalization='mean')
+            diff_nrmse_mean_cum += diff_nrmse_mean
 
             # diff_voi = voi(data_batch[i], output_batch[i])
             diff_voi_cum += 1#diff_voi
@@ -98,10 +107,16 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_psnr_average = diff_psnr_cum / counter
     diff_msssim_average = diff_msssim_cum.detach().cpu().numpy() / counter
 
+
     diff_are_average = diff_are_cum / counter
     diff_ct_average = diff_ct_cum / counter
-    diff_nrmse_average = diff_nrmse_cum / counter
+
+    diff_nrmse_eucl_average = diff_nrmse_eucl_cum / counter
+    diff_nrmse_minmax_average = diff_nrmse_minmax_cum / counter
+    diff_nrmse_mean_average = diff_nrmse_mean_cum / counter
+
     diff_voi_average = diff_voi_cum / counter
 
 
-    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, diff_ct_average, diff_nrmse_average, diff_voi_average
+    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, \
+         diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, diff_voi_average

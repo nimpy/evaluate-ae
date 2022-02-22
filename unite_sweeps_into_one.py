@@ -98,9 +98,9 @@ def sweep_one_sweep_to_rule_them_all():
     # if torch.cuda.is_available():  # uncomment for CUDA
     #     model.cuda()
 
-    mse, ssim, psnr, msssim, are, ct, nrmse, voi = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
+    mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
     print('--------- METRICS ---------')
-    print(mse, ssim, psnr, msssim, are, ct, nrmse, voi)
+    print(mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi)
     print()
 
     if use_wandb:
