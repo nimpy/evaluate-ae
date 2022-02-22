@@ -14,6 +14,7 @@ import sys
 sys.path.append('/scratch/cloned_repositories/pytorch-msssim')
 from pytorch_msssim import msssim
 
+import numpy as np
 import torch
 from torch.autograd import Variable
 
@@ -43,7 +44,8 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_nrmse_eucl_cum = 0
     diff_nrmse_minmax_cum = 0
     diff_nrmse_mean_cum = 0
-    diff_voi_cum = 0
+    diff_voi_oi_cum = 0
+    diff_voi_io_cum = 0
 
     model.eval()
 
@@ -83,12 +85,6 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
             diff_psnr_cum += diff_psnr
 
-            # diff_are, _, _ = are(data_batch[i], output_batch[i])  # TODO log these too!
-            diff_are_cum += 1#diff_are
-
-            # diff_ct = ct(data_batch[i], output_batch[i])
-            diff_ct_cum += 1#diff_ct
-
             # for NRMSE, logging for different normalisations ('euclidean’, ‘min-max’, ‘mean')
             diff_nrmse_eucl = nrmse(data_batch[i], output_batch[i], normalization='euclidean')
             diff_nrmse_eucl_cum += diff_nrmse_eucl
@@ -99,8 +95,29 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_nrmse_mean = nrmse(data_batch[i], output_batch[i], normalization='mean')
             diff_nrmse_mean_cum += diff_nrmse_mean
 
-            # diff_voi = voi(data_batch[i], output_batch[i])
-            diff_voi_cum += 1#diff_voi
+        data_batch = 255 * data_batch
+        data_batch = data_batch.astype(np.uint8)
+        output_batch = 255 * output_batch
+        output_batch = output_batch.astype(np.uint8)
+
+        for i in range(output_batch.shape[0]):
+
+            diff_ct = ct(data_batch[i], output_batch[i])
+            # print('diff_ct', diff_ct)
+            # print('type', type(diff_ct))
+            # print('--------')
+            diff_ct_cum += 1#diff_ct  TODO
+
+            # logging not only adapted random error but also its precision and recall
+            diff_are, diff_are_prec, diff_are_rec = are(data_batch[i], output_batch[i])
+            diff_are_cum += diff_are
+
+            # with variation of information, logging both conditional entropies of image1|image0 and image0|image1
+            diff_voi = voi(data_batch[i], output_batch[i])  # TODO 'create' another metric by summing them up
+            diff_voi_oi = diff_voi[0]  # image1|image0
+            diff_voi_io = diff_voi[1]  # image0|image1
+            diff_voi_oi_cum += diff_voi_oi
+            diff_voi_io_cum += diff_voi_io
 
     diff_mse_average = diff_mse_cum / counter
     diff_ssim_average = diff_ssim_cum / counter
@@ -115,8 +132,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_nrmse_minmax_average = diff_nrmse_minmax_cum / counter
     diff_nrmse_mean_average = diff_nrmse_mean_cum / counter
 
-    diff_voi_average = diff_voi_cum / counter
+    diff_voi_oi_average = diff_voi_oi_cum / counter
+    diff_voi_io_average = diff_voi_io_cum / counter
 
 
     return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, \
-         diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, diff_voi_average
+            diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, \
+            diff_voi_oi_average, diff_voi_io_average
