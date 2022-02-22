@@ -14,6 +14,23 @@ import sys
 sys.path.append('/scratch/cloned_repositories/pytorch-msssim')
 from pytorch_msssim import msssim
 
+sys.path.append('/scratch/cloned_repositories/sewar')
+# from sewar import ssim as sewarssim
+# from sewar import msssim as sewarmsssim
+from sewar import rmse_sw
+from sewar import uqi
+from sewar import ergas
+from sewar import scc
+from sewar import rase
+from sewar import sam
+from sewar import vifp
+from sewar import psnrb
+# from sewar import d_lambda  # it makes no sense to use this -- it calculates Spectral Distortion Index
+# the following 2 metrics also make no sense here, they have to do with panchromatic images and require a 3rd param:
+# :param fused: high resolution fused image
+# from sewar import d_s
+# from sewar import qnr
+
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -46,6 +63,15 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_nrmse_mean_cum = 0
     diff_voi_oi_cum = 0
     diff_voi_io_cum = 0
+
+    diff_rmse_sw_cum = 0
+    diff_uqi_cum = 0
+    diff_ergas_cum = 0
+    diff_scc_cum = 0
+    diff_rase_cum = 0
+    diff_sam_cum = 0
+    diff_vifp_cum = 0
+    diff_psnrb_cum = 0
 
     model.eval()
 
@@ -95,6 +121,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_nrmse_mean = nrmse(data_batch[i], output_batch[i], normalization='mean')
             diff_nrmse_mean_cum += diff_nrmse_mean
 
+        # transform the input and output batches into np.uint8
         data_batch = 255 * data_batch
         data_batch = data_batch.astype(np.uint8)
         output_batch = 255 * output_batch
@@ -119,6 +146,43 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_voi_oi_cum += diff_voi_oi
             diff_voi_io_cum += diff_voi_io
 
+            # input and output images with shape of length 2 (matrices basically)
+            input_image = data_batch[i][0]
+            output_image = output_batch[i][0]
+
+            diff_rmse_sw = rmse_sw(input_image, output_image)[0]
+            # print('diff_rmse_sw', diff_rmse_sw)
+            diff_rmse_sw_cum += diff_rmse_sw
+
+            diff_uqi = uqi(input_image, output_image)
+            # print('diff_uqi', diff_uqi)
+            diff_uqi_cum += diff_uqi
+
+            diff_ergas = ergas(input_image, output_image)
+            # print('diff_ergas', diff_ergas)
+            diff_ergas_cum += diff_ergas
+
+            diff_scc = scc(input_image, output_image)
+            # print('diff_scc', diff_scc)
+            diff_scc_cum += diff_scc
+
+            diff_rase = rase(input_image, output_image)
+            # print('diff_rase', diff_rase)
+            diff_rase_cum += diff_rase
+
+            diff_sam = sam(input_image, output_image)
+            # print('diff_sam', diff_sam)
+            diff_sam_cum += diff_sam
+
+            diff_vifp = vifp(input_image, output_image)
+            # print('diff_vifp', diff_vifp)
+            diff_vifp_cum += diff_vifp
+
+            diff_psnrb = psnrb(input_image, output_image)
+            # print('diff_psnrb', diff_psnrb)
+            diff_psnrb_cum += diff_psnrb
+
+
     diff_mse_average = diff_mse_cum / counter
     diff_ssim_average = diff_ssim_cum / counter
     diff_psnr_average = diff_psnr_cum / counter
@@ -135,7 +199,18 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_voi_oi_average = diff_voi_oi_cum / counter
     diff_voi_io_average = diff_voi_io_cum / counter
 
+    diff_rmse_sw_average = diff_rmse_sw_cum / counter
+    diff_uqi_average = diff_uqi_cum / counter
+    diff_ergas_average = diff_ergas_cum / counter
+    diff_scc_average = diff_scc_cum / counter
+    diff_rase_average = diff_rase_cum / counter
+    diff_sam_average = diff_sam_cum / counter
+    diff_vifp_average = diff_vifp_cum / counter
+    diff_psnrb_average = diff_psnrb_cum / counter
+
 
     return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, \
             diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, \
-            diff_voi_oi_average, diff_voi_io_average
+            diff_voi_oi_average, diff_voi_io_average, \
+            diff_rmse_sw_average, diff_uqi_average, diff_ergas_average, diff_scc_average, diff_rase_average, \
+            diff_sam_average, diff_vifp_average, diff_psnrb_average

@@ -18,6 +18,7 @@ import evaluation
 import models.ae as ae
 import models.vae as vae
 
+
 def load_sweep_csv(filepath):
 
     # I made this csv file by downloading csv files from different wandb sweeps and uniting them all into one csv file
@@ -98,9 +99,9 @@ def sweep_one_sweep_to_rule_them_all():
     # if torch.cuda.is_available():  # uncomment for CUDA
     #     model.cuda()
 
-    mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi_oi, voi_io = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
+    mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi_oi, voi_io, rmse_sw, uqi, ergas, scc, rase, sam, vifp, psnrb = evaluation.calculate_approximate_evaluation_metrics_on_test_set(model)  # mse, ssim, psnr
     print('--------- METRICS ---------')
-    print(mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi_oi, voi_io)
+    print(mse, ssim, psnr, msssim, are, ct, nrmse_eucl, nrmse_minmax, nrmse_mean, voi_oi, voi_io, rmse_sw, uqi, ergas, scc, rase, sam, vifp, psnrb)
     print()
 
     if use_wandb:
