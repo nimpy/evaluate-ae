@@ -48,17 +48,17 @@ def sweep_one_sweep_to_rule_them_all():
 
     args = parser.parse_args()
 
-    use_wandb = False
+    use_wandb = True
 
     if use_wandb:
         wandb_run = wandb.init()
 
     # TODO delete when done with debugging
-    wandb.config.data_augm_level = 0
-    wandb.config.activation_fn = 'elu'
-    wandb.config.loss_fn = 'bce'
-    wandb.config.vae_beta_norm = 0.0001
-    wandb.config.learning_rate = 0.0001
+    # wandb.config.data_augm_level = 0
+    # wandb.config.activation_fn = 'elu'
+    # wandb.config.loss_fn = 'bce'
+    # wandb.config.vae_beta_norm = 0.0001
+    # wandb.config.learning_rate = 0.0001
 
     logging.info("\n\n****************** STARTING A NEW RUN ******************")
     logging.info('Data augmentation level: ' + str(wandb.config.data_augm_level))
@@ -80,7 +80,7 @@ def sweep_one_sweep_to_rule_them_all():
     wandb.config.num_workers = 4
     wandb.config.vae_or_ae = "vae" if wandb.config.vae_beta_norm > 0.0000001 else "ae"
 
-    sweep_version = 'sweep__one_sweep_to_rule_them_all_v2022_0'  # TODO change in both files!!! (TODO make it a parameter)
+    sweep_version = 'sweep__one_sweep_to_rule_them_all_v2022_1'  # TODO change in both files!!! (TODO make it a parameter)
 
     Path(os.path.join(args.sweep_dir, sweep_version)).mkdir(parents=True, exist_ok=True)
 
@@ -110,14 +110,22 @@ def sweep_one_sweep_to_rule_them_all():
                    "matching_overall": row_df.matching_overall,
                    "retrieval_overall": row_df.retrieval_overall,
                    "verification_overall": row_df.verification_overall,
-                   "mse": row_df.mse, "psnr": row_df.psnr, "ssim": row_df.ssim, "loss": row_df.loss})
+                   "mse": row_df.mse, "psnr": row_df.psnr, "ssim": row_df.ssim,
+                   "are": are, "ct": ct, "nrmse_eucl": nrmse_eucl, "nrmse_minmax": nrmse_minmax, "nrmse_mean": nrmse_mean,
+                   "voi_oi": voi_oi, "voi_io": voi_io, "rmse_sw": rmse_sw, "uqi": uqi, "ergas": ergas,
+                   "scc": scc, "rase": rase, "sam": sam, "vifp": vifp, "psnrb": psnrb,
+                   # "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx,
+                   # "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx,
+                   "loss": row_df.loss})
 
     if use_wandb:
         wandb_run.finish()
         
         
-if __name__ == '__main__':
-    sweep_one_sweep_to_rule_them_all()
+# if __name__ == '__main__':
+#     sweep_one_sweep_to_rule_them_all()
+
+
     # if it's run like this (only for testing, then the following should be added right before the following line:
     # #    logging.info("\n\n****************** STARTING A NEW RUN ******************")
 

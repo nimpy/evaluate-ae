@@ -11,8 +11,6 @@ from skimage.metrics import variation_of_information as voi
 # from skimage.metrics import normalized_mutual_information as nmi
 
 import sys
-sys.path.append('/scratch/cloned_repositories/pytorch-msssim')
-from pytorch_msssim import msssim
 
 sys.path.append('/scratch/cloned_repositories/sewar')
 # from sewar import ssim as sewarssim
@@ -21,7 +19,7 @@ from sewar import rmse_sw
 from sewar import uqi
 from sewar import ergas
 from sewar import scc
-from sewar import rase
+# from sewar import rase
 from sewar import sam
 from sewar import vifp
 from sewar import psnrb
@@ -52,10 +50,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     test_dl = dataloaders['test']
 
     counter = 0
-    diff_mse_cum = 0
-    diff_ssim_cum = 0
-    diff_psnr_cum = 0
-    diff_msssim_cum = 0
+    # diff_mse_cum = 0
+    # diff_ssim_cum = 0
+    # diff_psnr_cum = 0
+    # diff_msssim_cum = 0
     diff_are_cum = 0
     diff_ct_cum = 0
     diff_nrmse_eucl_cum = 0
@@ -68,7 +66,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_uqi_cum = 0
     diff_ergas_cum = 0
     diff_scc_cum = 0
-    diff_rase_cum = 0
+    # diff_rase_cum = 0
     diff_sam_cum = 0
     diff_vifp_cum = 0
     diff_psnrb_cum = 0
@@ -85,13 +83,6 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
         else:
             output_batch = model(data_batch)
 
-        # calculating MS-SSIM before converting the input and output batches to numpy format...
-        for input_image, output_image in zip(data_batch, output_batch):
-            # reshape the images to add extra dimension because this is the expected input of pytorch_msssim
-            # minus because I already negated msssim in its code  # TODO fix (install the library and import like that)
-            diff_msssim = - msssim(torch.unsqueeze(input_image, 0), torch.unsqueeze(output_image, 0))
-            diff_msssim_cum += diff_msssim
-
         # now convert the input and output batches to numpy
         data_batch = data_batch.cpu().numpy()
         output_batch = output_batch.detach().cpu().numpy()
@@ -99,17 +90,17 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
         counter += data_batch.shape[0]
 
         for i in range(output_batch.shape[0]):
-            diff_mse = mse(data_batch[i], output_batch[i])
-            diff_mse_cum += diff_mse
+            # diff_mse = mse(data_batch[i], output_batch[i])
+            # diff_mse_cum += diff_mse
 
             dr_max = max(data_batch[i].max(), output_batch[i].max())
             dr_min = min(data_batch[i].min(), output_batch[i].min())
 
-            diff_ssim = ssim(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
-            diff_ssim_cum += diff_ssim
+            # diff_ssim = ssim(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
+            # diff_ssim_cum += diff_ssim
 
-            diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
-            diff_psnr_cum += diff_psnr
+            # diff_psnr = psnr(data_batch[i, 0], output_batch[i, 0], data_range=dr_max - dr_min)
+            # diff_psnr_cum += diff_psnr
 
             # for NRMSE, logging for different normalisations ('euclidean’, ‘min-max’, ‘mean')
             diff_nrmse_eucl = nrmse(data_batch[i], output_batch[i], normalization='euclidean')
@@ -166,9 +157,9 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             # print('diff_scc', diff_scc)
             diff_scc_cum += diff_scc
 
-            diff_rase = rase(input_image, output_image)
-            # print('diff_rase', diff_rase)
-            diff_rase_cum += diff_rase
+            # diff_rase = rase(input_image, output_image)
+            # # print('diff_rase', diff_rase)
+            # diff_rase_cum += diff_rase
 
             diff_sam = sam(input_image, output_image)
             # print('diff_sam', diff_sam)
@@ -183,10 +174,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             diff_psnrb_cum += diff_psnrb
 
 
-    diff_mse_average = diff_mse_cum / counter
-    diff_ssim_average = diff_ssim_cum / counter
-    diff_psnr_average = diff_psnr_cum / counter
-    diff_msssim_average = diff_msssim_cum.detach().cpu().numpy() / counter
+    # diff_mse_average = diff_mse_cum / counter
+    # diff_ssim_average = diff_ssim_cum / counter
+    # diff_psnr_average = diff_psnr_cum / counter
+    # diff_msssim_average = diff_msssim_cum / counter  # TODO
 
 
     diff_are_average = diff_are_cum / counter
@@ -203,14 +194,15 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     diff_uqi_average = diff_uqi_cum / counter
     diff_ergas_average = diff_ergas_cum / counter
     diff_scc_average = diff_scc_cum / counter
-    diff_rase_average = diff_rase_cum / counter
+    # diff_rase_average = diff_rase_cum / counter
     diff_sam_average = diff_sam_cum / counter
     diff_vifp_average = diff_vifp_cum / counter
     diff_psnrb_average = diff_psnrb_cum / counter
 
-
-    return diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average, diff_are_average, \
+    # diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average,
+    # diff_rase_average
+    return 0, 0, 0, 0, diff_are_average, \
             diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, \
             diff_voi_oi_average, diff_voi_io_average, \
-            diff_rmse_sw_average, diff_uqi_average, diff_ergas_average, diff_scc_average, diff_rase_average, \
+            diff_rmse_sw_average, diff_uqi_average, diff_ergas_average, diff_scc_average, 0, \
             diff_sam_average, diff_vifp_average, diff_psnrb_average
