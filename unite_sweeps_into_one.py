@@ -80,7 +80,7 @@ def sweep_one_sweep_to_rule_them_all():
     wandb.config.num_workers = 4
     wandb.config.vae_or_ae = "vae" if wandb.config.vae_beta_norm > 0.0000001 else "ae"
 
-    sweep_version = 'sweep__one_sweep_to_rule_them_all_v2022_1'  # TODO change in both files!!! (TODO make it a parameter)
+    sweep_version = 'sweep__one_sweep_to_rule_them_all_v2022_3'  # TODO change in both files!!! (TODO make it a parameter)
 
     Path(os.path.join(args.sweep_dir, sweep_version)).mkdir(parents=True, exist_ok=True)
 
@@ -111,12 +111,12 @@ def sweep_one_sweep_to_rule_them_all():
                    "retrieval_overall": row_df.retrieval_overall,
                    "verification_overall": row_df.verification_overall,
                    "mse": row_df.mse, "psnr": row_df.psnr, "ssim": row_df.ssim,
-                   "are": are, "ct": ct, "nrmse_eucl": nrmse_eucl, "nrmse_minmax": nrmse_minmax, "nrmse_mean": nrmse_mean,
+                   "msssim": msssim,
+                   "are": are, "nrmse_eucl": nrmse_eucl, "nrmse_minmax": nrmse_minmax, "nrmse_mean": nrmse_mean,
                    "voi_oi": voi_oi, "voi_io": voi_io, "rmse_sw": rmse_sw, "uqi": uqi, "ergas": ergas,
-                   "scc": scc, "rase": rase, "sam": sam, "vifp": vifp, "psnrb": psnrb,
-                   # "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx,
-                   # "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx, "xxx": xxx,
+                   "scc": scc, "sam": sam, "vifp": vifp, "psnrb": psnrb,
                    "loss": row_df.loss})
+    # "ct": ct, "rase": rase  <-- not able to set them up / make no sense
 
     if use_wandb:
         wandb_run.finish()

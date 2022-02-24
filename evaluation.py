@@ -14,7 +14,7 @@ import sys
 
 sys.path.append('/scratch/cloned_repositories/sewar')
 # from sewar import ssim as sewarssim
-# from sewar import msssim as sewarmsssim
+from sewar import msssim as msssim
 from sewar import rmse_sw
 from sewar import uqi
 from sewar import ergas
@@ -53,7 +53,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     # diff_mse_cum = 0
     # diff_ssim_cum = 0
     # diff_psnr_cum = 0
-    # diff_msssim_cum = 0
+    diff_msssim_cum = 0
     diff_are_cum = 0
     diff_ct_cum = 0
     diff_nrmse_eucl_cum = 0
@@ -141,6 +141,10 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
             input_image = data_batch[i][0]
             output_image = output_batch[i][0]
 
+            diff_msssim = msssim(input_image, output_image).real
+            # print('diff_msssim', diff_msssim)
+            diff_msssim_cum += diff_msssim
+
             diff_rmse_sw = rmse_sw(input_image, output_image)[0]
             # print('diff_rmse_sw', diff_rmse_sw)
             diff_rmse_sw_cum += diff_rmse_sw
@@ -177,8 +181,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
     # diff_mse_average = diff_mse_cum / counter
     # diff_ssim_average = diff_ssim_cum / counter
     # diff_psnr_average = diff_psnr_cum / counter
-    # diff_msssim_average = diff_msssim_cum / counter  # TODO
-
+    diff_msssim_average = diff_msssim_cum / counter
 
     diff_are_average = diff_are_cum / counter
     diff_ct_average = diff_ct_cum / counter
@@ -201,7 +204,7 @@ def calculate_approximate_evaluation_metrics_on_test_set(model):
 
     # diff_mse_average, diff_ssim_average, diff_psnr_average, diff_msssim_average,
     # diff_rase_average
-    return 0, 0, 0, 0, diff_are_average, \
+    return 0, 0, 0, diff_msssim_average, diff_are_average, \
             diff_ct_average, diff_nrmse_eucl_average, diff_nrmse_minmax_average, diff_nrmse_mean_average, \
             diff_voi_oi_average, diff_voi_io_average, \
             diff_rmse_sw_average, diff_uqi_average, diff_ergas_average, diff_scc_average, 0, \
